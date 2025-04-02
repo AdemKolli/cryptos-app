@@ -1,5 +1,9 @@
 import argparse
 import json
+import re
+
+def preprocess_text(text):
+    return re.sub(r'[^A-Z]', '', text.upper())
 
 def prepare_key(key):
     key = key.upper()
@@ -34,6 +38,7 @@ def find_char_position(matrix, char):
 def playfair_encrypt(plaintext, key):
     matrix = create_matrix(key)
     plaintext = plaintext.upper().replace(" ", "")
+    plaintext = preprocess_text(plaintext)
     processed_text = []
     i = 0
     
@@ -66,6 +71,7 @@ def playfair_encrypt(plaintext, key):
 def playfair_decrypt(ciphertext, key):
     matrix = create_matrix(key)
     ciphertext = ciphertext.upper().replace(" ", "")
+    ciphertext = preprocess_text(ciphertext)
     plaintext = ""
     
     for i in range(0, len(ciphertext), 2):
