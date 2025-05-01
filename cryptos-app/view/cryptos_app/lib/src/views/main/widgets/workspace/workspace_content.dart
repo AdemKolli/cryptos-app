@@ -1,7 +1,8 @@
 import 'package:cryptos_app/src/controllers/display_controller.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
 import 'package:cryptos_app/src/views/main/widgets/workspace/tab_content.dart';
-import 'package:cryptos_app/src/views/main/widgets/workspace/tabs_bar.dart';
+import 'package:cryptos_app/src/views/main/widgets/workspace/tool_selector.dart';
+// import 'package:cryptos_app/src/views/main/widgets/workspace/tabs_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,8 +29,9 @@ class WorkspaceContent extends StatelessWidget {
             ),
           ),
           child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TabsBar(),
+              ToolSelector(),
               Padding(
                 padding: EdgeInsets.only(top: 24),
                 child: TabContent(),

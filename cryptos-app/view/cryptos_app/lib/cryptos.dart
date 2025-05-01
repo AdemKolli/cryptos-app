@@ -1,4 +1,5 @@
 import 'package:cryptos_app/src/controllers/display_controller.dart';
+import 'package:cryptos_app/src/controllers/workspace_controller.dart';
 import 'package:cryptos_app/src/services/history_service.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
 import 'package:cryptos_app/src/views/main/main_screen.dart';
@@ -15,7 +16,10 @@ class CryptosApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => DisplayController(),
+          create: (_) => DisplayController(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WorkspaceController(),
         ),
         Provider(create: (_) => HistoryService()),
       ],

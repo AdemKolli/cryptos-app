@@ -86,7 +86,7 @@ class HistoryCard extends StatelessWidget {
                   child: Opacity(
                     opacity: 0.33,
                     child: Text(
-                      'File name',
+                      opType == 1 ? 'File name' : 'Input Text',
                       style: GoogleFonts.urbanist(
                         color: const Color(0xFF101010),
                         fontSize: 11,
