@@ -1,5 +1,5 @@
 import 'package:cryptos_app/src/utils/debug_box.dart';
-import 'package:cryptos_app/src/views/main/widgets/logo.dart';
+import 'package:cryptos_app/src/views/main/widgets/home/logo.dart';
 import 'package:cryptos_app/src/views/main/widgets/section_content.dart';
 import 'package:cryptos_app/src/views/main/widgets/section_title.dart';
 import 'package:cryptos_app/src/views/main/widgets/sidebar.dart';

@@ -24,10 +24,6 @@ class DisplayController extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Widget> contents = [
-    
-  ];
-
   void toggleSidebar(){
     _sidebar = _sidebar == SidebarStatus.collapsed ? SidebarStatus.open : SidebarStatus.collapsed;
     notifyListeners();

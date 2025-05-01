@@ -30,7 +30,7 @@ class HistoryCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'File Encryption',
+                  opType == 1 ? 'File Encryption' : 'Text Encryption',
                   style: GoogleFonts.urbanist(
                     color: const Color(0xFF8899A9),
                     fontSize: 12,
@@ -61,7 +61,7 @@ class HistoryCard extends StatelessWidget {
                       ),
                     ),
                     SvgPicture.asset(
-                      'assets/file.svg',
+                       opType == 1 ? 'assets/file.svg' : 'assets/text.svg',
                       width: 18,
                     )
                   ],
@@ -71,7 +71,7 @@ class HistoryCard extends StatelessWidget {
             SizedBox(
               width: 175,
               child: Text(
-                'AES File encryption',
+                opName,
                 style: GoogleFonts.urbanist(
                   color: const Color(0xFF101010),
                   fontSize: 16,
@@ -110,7 +110,7 @@ class HistoryCard extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      'test_file.txt',
+                      content,
                       style: GoogleFonts.urbanist(
                         color: const Color(0xFF101010),
                         fontSize: 11,
@@ -126,7 +126,7 @@ class HistoryCard extends StatelessWidget {
               child: Opacity(
                 opacity: 0.33,
                 child: Text(
-                  '13:46 - 16th Jun 2025',
+                  timestamp,
                   style: GoogleFonts.urbanist(
                     color: const Color(0xFF101010),
                     fontSize: 11,

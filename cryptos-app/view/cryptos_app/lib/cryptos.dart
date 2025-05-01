@@ -1,4 +1,5 @@
 import 'package:cryptos_app/src/controllers/display_controller.dart';
+import 'package:cryptos_app/src/services/history_service.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
 import 'package:cryptos_app/src/views/main/main_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,8 @@ class CryptosApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (context) => DisplayController(),
-        )
+        ),
+        Provider(create: (_) => HistoryService()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

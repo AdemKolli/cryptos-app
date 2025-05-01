@@ -13,7 +13,7 @@ class SideBar extends StatelessWidget {
     return Consumer<DisplayController>(
         builder: (context, displayController, _) {
       return AnimatedContainer(
-        duration: Durations.medium4,
+        duration: Durations.long2,
         curve: Easing.legacy,
         width: displayController.sidebar == SidebarStatus.open ? 175 : 72,
         height: ScreenInfo.height * 0.73,
@@ -37,8 +37,8 @@ class SideBar extends StatelessWidget {
                         width: 32,
                       ),
                       AnimatedSize(
-                        duration: Durations.medium4,
-                        curve: Curves.easeInOut,
+                        duration: Durations.short1,
+                        curve: Easing.legacy,
                         child: ClipRect(
                           child: Row(
                             children: [
@@ -48,7 +48,7 @@ class SideBar extends StatelessWidget {
                                       ? 10
                                       : 0),
                               AnimatedOpacity(
-                                duration: Durations.medium4,
+                                duration: Durations.extralong4,
                                 opacity: displayController.sidebar ==
                                         SidebarStatus.open
                                     ? 1
@@ -78,7 +78,7 @@ class SideBar extends StatelessWidget {
                   Opacity(
                     opacity: 0.28,
                     child: AnimatedContainer(
-                      duration: Durations.medium4,
+                      duration: Durations.extralong4,
                       curve: Easing.legacy,
                       width: displayController.sidebar == SidebarStatus.open
                           ? 175
@@ -105,96 +105,104 @@ class SideBar extends StatelessWidget {
                       onTap: () {
                         displayController.setContent(MainScreenContent.home);
                       },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/home.svg',
-                            height: 30,
-                            width: 30,
-                          ),
-                          AnimatedSize(
-                            duration: Durations.medium4,
-                            curve: Curves.easeInOut,
-                            child: ClipRect(
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                      width: displayController.sidebar ==
+                      child: AnimatedOpacity(
+                        duration: Durations.short4,
+                        opacity: displayController.actualContent == MainScreenContent.home ? 1: 0.4,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/home.svg',
+                              height: 30,
+                              width: 30,
+                            ),
+                            AnimatedSize(
+                              duration: Durations.short4,
+                              curve: Curves.easeInOut,
+                              child: ClipRect(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                        width: displayController.sidebar ==
+                                                SidebarStatus.open
+                                            ? 10
+                                            : 0),
+                                    AnimatedOpacity(
+                                      duration: Durations.short4,
+                                      opacity: displayController.sidebar ==
                                               SidebarStatus.open
-                                          ? 10
-                                          : 0),
-                                  AnimatedOpacity(
-                                    duration: Durations.medium4,
-                                    opacity: displayController.sidebar ==
-                                            SidebarStatus.open
-                                        ? 1
-                                        : 0,
-                                    child: displayController.sidebar ==
-                                            SidebarStatus.open
-                                        ? Text(
-                                            'Home',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.urbanist(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          )
-                                        : const SizedBox(), // Avoid occupying space when hidden
-                                  ),
-                                ],
+                                          ? 1
+                                          : 0,
+                                      child: displayController.sidebar ==
+                                              SidebarStatus.open
+                                          ? Text(
+                                              'Home',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.urbanist(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            )
+                                          : const SizedBox(), // Avoid occupying space when hidden
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
                         displayController.setContent(MainScreenContent.workspace);
                       },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SvgPicture.asset(
-                            'assets/workspace.svg',
-                          ),
-                          AnimatedSize(
-                            duration: Durations.medium4,
-                            curve: Curves.easeInOut,
-                            child: ClipRect(
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                      width: displayController.sidebar ==
+                      child: AnimatedOpacity(
+                        duration: Durations.short4,
+                        opacity: displayController.actualContent == MainScreenContent.workspace ? 1 : 0.4,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/workspace.svg',
+                            ),
+                            AnimatedSize(
+                              duration: Durations.short4,
+                              curve: Curves.easeInOut,
+                              child: ClipRect(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                        width: displayController.sidebar ==
+                                                SidebarStatus.open
+                                            ? 10
+                                            : 0),
+                                    AnimatedOpacity(
+                                      duration: Durations.short4,
+                                      opacity: displayController.sidebar ==
                                               SidebarStatus.open
-                                          ? 10
-                                          : 0),
-                                  AnimatedOpacity(
-                                    duration: Durations.medium4,
-                                    opacity: displayController.sidebar ==
-                                            SidebarStatus.open
-                                        ? 1
-                                        : 0,
-                                    child: displayController.sidebar ==
-                                            SidebarStatus.open
-                                        ? Text(
-                                            'Workspace',
-                                            overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.urbanist(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          )
-                                        : const SizedBox(), // Avoid occupying space when hidden
-                                  ),
-                                ],
+                                          ? 1
+                                          : 0,
+                                      child: displayController.sidebar ==
+                                              SidebarStatus.open
+                                          ? Text(
+                                              'Workspace',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.urbanist(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            )
+                                          : const SizedBox(), // Avoid occupying space when hidden
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -205,7 +213,7 @@ class SideBar extends StatelessWidget {
                   Opacity(
                     opacity: 0.28,
                     child: AnimatedContainer(
-                      duration: Durations.medium4,
+                      duration: Durations.short4,
                       curve: Easing.legacy,
                       width: displayController.sidebar == SidebarStatus.open
                           ? 175
@@ -237,7 +245,7 @@ class SideBar extends StatelessWidget {
                           width: 30,
                         ),
                         AnimatedSize(
-                          duration: Durations.medium4,
+                          duration: Durations.short4,
                           curve: Curves.easeInOut,
                           child: ClipRect(
                             child: Row(
@@ -248,7 +256,7 @@ class SideBar extends StatelessWidget {
                                         ? 10
                                         : 0),
                                 AnimatedOpacity(
-                                  duration: Durations.medium4,
+                                  duration: Durations.short4,
                                   opacity: displayController.sidebar ==
                                           SidebarStatus.open
                                       ? 1

@@ -1,10 +1,12 @@
 import 'package:cryptos_app/src/controllers/display_controller.dart';
+import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
-import 'package:cryptos_app/src/views/main/widgets/history_card.dart';
+import 'package:cryptos_app/src/views/main/widgets/home/history_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:text_scroll/text_scroll.dart';
 
@@ -49,9 +51,17 @@ class HomeContent extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   child: Column(
                     children: [
-                      SvgPicture.asset(
-                        'assets/logo.svg',
-                        height: 55,
+                      GestureDetector(
+                        onTap: () {
+                          // Hive.box<HistoryModel>('history').add(
+                          //   HistoryModel(opType: 0, opName: "opName", content: "content", timestamp: "timestamp")
+                          // );
+                          Hive.box<HistoryModel>('history').clear();
+                        },
+                        child: SvgPicture.asset(
+                          'assets/logo.svg',
+                          height: 55,
+                        ),
                       ),
                       const SizedBox(
                         height: 10,
@@ -97,32 +107,68 @@ class HomeContent extends StatelessWidget {
                 Expanded(
                   child: Stack(
                     children: [
-                      AnimationLimiter(
-                        child: ListView.builder(
-                          itemCount: 100,
-                          padding: const EdgeInsets.only(left: 20),
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (BuildContext context, int index) {
-                            return AnimationConfiguration.staggeredList(
-                              position: index,
-                              duration: const Duration(milliseconds: 900),
-                              child: const SlideAnimation(
-                                horizontalOffset: 50.0,
-                                child: FadeInAnimation(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: HistoryCard(
-                                      opType: 1,
-                                      opName: 'AES File Encryption',
-                                      content: 'test_file.txt',
-                                      timestamp: '13:46 - 16th Jun 2025',
+                      ValueListenableBuilder<Box<HistoryModel>>(
+                        valueListenable: Hive.box<HistoryModel>('history').listenable(),
+                        builder: (context, box, _) {
+                          final history = box.values.toList().reversed.toList();
+                          return history.isEmpty ? Center(
+                            child: Opacity(
+                              opacity: 0.4,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Operations History",
+                                    style: GoogleFonts.urbanist(
+                                      color: Colors.black,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold
                                     ),
                                   ),
-                                ),
+                                  SizedBox(
+                                    width: 380,
+                                    child: Text(
+                                      "Nothing to show for now, Head to the workspace, and make some operations to see them here",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.urbanist(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          ) : AnimationLimiter(
+                            child: ListView.builder(
+                              itemCount: history.length,
+                              padding: const EdgeInsets.only(left: 20),
+                              scrollDirection: Axis.horizontal,
+                              itemBuilder: (context, index) {
+                                final item = history[index];
+                                return AnimationConfiguration.staggeredList(
+                                  position: index,
+                                  duration: const Duration(milliseconds: 900),
+                                  child: SlideAnimation(
+                                    horizontalOffset: 50.0,
+                                    child: FadeInAnimation(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: HistoryCard(
+                                          opType: item.opType,
+                                          opName: item.opName,
+                                          content: item.content,
+                                          timestamp: item.timestamp,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
                       // Left fade
                       Positioned(
