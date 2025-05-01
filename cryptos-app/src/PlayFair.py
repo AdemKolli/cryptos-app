@@ -3,10 +3,12 @@ import json
 import re
 
 def preprocess_text(text):
-    return re.sub(r'[^A-Z]', '', text.upper())
+    # Replace W with V and remove non-alphabetic characters
+    return re.sub(r'[^A-Z]', '', text.upper().replace('W', 'V'))
 
 def prepare_key(key):
-    key = key.upper()
+    # Replace W with V and remove duplicates
+    key = key.upper().replace('W', 'V')
     unique_key = ""
     for char in key:
         if char not in unique_key:
@@ -84,6 +86,11 @@ def playfair_decrypt(ciphertext, key):
             plaintext += matrix[(row1 - 1) % 5][col1] + matrix[(row2 - 1) % 5][col2]
         else:
             plaintext += matrix[row1][col2] + matrix[row2][col1]
+    
+    # Check if the plaintext contains 'V' and suggest replacing it with 'W'
+    if 'V' in plaintext:
+        suggested_plaintext = plaintext.replace('V', 'W')
+        print(f"Note: The decrypted text contains the letter 'V'. Maybe you meant: '{suggested_plaintext}'")
     
     return plaintext
 
