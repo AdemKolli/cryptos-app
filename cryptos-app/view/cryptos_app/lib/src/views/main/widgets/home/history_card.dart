@@ -111,6 +111,8 @@ class HistoryCard extends StatelessWidget {
                   child: Center(
                     child: Text(
                       content,
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
                       style: GoogleFonts.urbanist(
                         color: const Color(0xFF101010),
                         fontSize: 11,

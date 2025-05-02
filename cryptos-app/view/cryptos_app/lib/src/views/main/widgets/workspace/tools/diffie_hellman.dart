@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for Clipboard
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
@@ -21,13 +23,39 @@ class _DiffieHellmanToolWidgetState extends State<DiffieHellmanToolWidget> {
   final TextEditingController _sharedYController = TextEditingController();
   final TextEditingController _outputController = TextEditingController();
 
+  void _showDocumentationDialog() async {
+    final markdownContent = await DefaultAssetBundle.of(context)
+        .loadString('assets/docs/DiffieHellman.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _processText() async {
     final args = ['lib/scripts/diffie_hellman.py', 'key_exchange'];
 
     void addIfFilled(String value) {
-      if (value.trim().isNotEmpty) {
-        args.add(value.trim());
-      }
+      args.add(value.trim().isNotEmpty ? value.trim() : 'None');
     }
 
     addIfFilled(_nController.text);
@@ -46,10 +74,8 @@ class _DiffieHellmanToolWidgetState extends State<DiffieHellmanToolWidget> {
         _outputController.text = result.stdout.toString().trim();
         Hive.box<HistoryModel>('history').add(HistoryModel(
           opType: 0,
-          opName: 
-              "Diffie-Hellman Key Exchange Algorithm"
-              ,
-          content: _outputController.text ,
+          opName: "Diffie-Hellman Key Exchange Algorithm",
+          content: _outputController.text,
           timestamp: DateTime.now().toIso8601String(),
         ));
       }
@@ -73,12 +99,29 @@ class _DiffieHellmanToolWidgetState extends State<DiffieHellmanToolWidget> {
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   )),
-              Text(actionLabel,
-                  style: GoogleFonts.urbanist(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  )),
+              GestureDetector(
+                onTap: () async {
+                  if (readOnly) {
+                    // Copy to clipboard
+                    await Clipboard.setData(ClipboardData(text: controller.text));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Copied to clipboard")),
+                    );
+                  } else {
+                    // Paste from clipboard
+                    final clipboardData = await Clipboard.getData('text/plain');
+                    if (clipboardData != null) {
+                      controller.text = clipboardData.text ?? '';
+                    }
+                  }
+                },
+                child: Text(actionLabel,
+                    style: GoogleFonts.urbanist(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    )),
+              ),
             ],
           ),
           Padding(
@@ -131,18 +174,21 @@ class _DiffieHellmanToolWidgetState extends State<DiffieHellmanToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                GestureDetector(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 )
@@ -150,12 +196,12 @@ class _DiffieHellmanToolWidgetState extends State<DiffieHellmanToolWidget> {
             ),
           ),
 
-          _labeledTextField("Prime N", "Optional", _nController),
-          _labeledTextField("Base G", "Optional", _gController),
-          _labeledTextField("Private x (Alice)", "Optional", _xController),
-          _labeledTextField("Private y (Bob)", "Optional", _yController),
-          _labeledTextField("Shared Key X (G^x mod N)", "Optional", _sharedXController),
-          _labeledTextField("Shared Key Y (G^y mod N)", "Optional", _sharedYController),
+          _labeledTextField("Prime N", "Paste from clipboard", _nController),
+          _labeledTextField("Base G", "Paste from clipboard", _gController),
+          _labeledTextField("Private x (Alice)", "Paste from clipboard", _xController),
+          _labeledTextField("Private y (Bob)", "Paste from clipboard", _yController),
+          _labeledTextField("Shared Key X (G^x mod N)", "Paste from clipboard", _sharedXController),
+          _labeledTextField("Shared Key Y (G^y mod N)", "Paste from clipboard", _sharedYController),
 
           // Encode Button
           Padding(

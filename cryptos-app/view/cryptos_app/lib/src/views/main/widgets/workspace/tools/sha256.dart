@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
@@ -20,8 +23,36 @@ class _SHA256ToolWidgetState extends State<SHA256ToolWidget> {
 
   int _saltPosition = 1; // 1 for prefix, 2 for suffix
 
+  void _showDocumentationDialog() async {
+    final markdownContent = await DefaultAssetBundle.of(context)
+        .loadString('assets/docs/Sha256.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _processText() async {
-    String text = _plainTextController.text.trim();
+    String text = _plainTextController.text;
     String salt = _saltController.text.trim();
 
     if (text.isEmpty) {
@@ -78,19 +109,22 @@ class _SHA256ToolWidgetState extends State<SHA256ToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                GestureDetector(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 )
@@ -100,10 +134,21 @@ class _SHA256ToolWidgetState extends State<SHA256ToolWidget> {
 
           // Plain Text Input
           _labeledTextField(
-              "Plain Text", "Paste from clipboard", _plainTextController),
+              "Plain Text", "Paste from clipboard", _plainTextController,
+              onTap: () async {
+                        final clipboardData =
+                            await Clipboard.getData('text/plain');
+                        if (clipboardData != null &&
+                            clipboardData.text != null) {
+                          setState(() {
+                            _plainTextController.text = clipboardData.text!;
+                          });
+                        }
+                      },),
 
           // Salt Input
-          _labeledTextField("Salt", "Optional input", _saltController),
+          _labeledTextField("Salt", "Optional input", _saltController,
+              onTap: () {}),
 
           // Salt Position Dropdown
           Padding(
@@ -168,8 +213,26 @@ class _SHA256ToolWidgetState extends State<SHA256ToolWidget> {
 
           // Encrypted Text Output
           _labeledTextField(
-              "Hash Output", "Copy to clipboard", _encryptedTextController,
-              readOnly: true),
+            "Hash Output",
+            "Copy to clipboard",
+            _encryptedTextController,
+            readOnly: true,
+            onTap: () {
+              if (_encryptedTextController.text.isNotEmpty) {
+                Clipboard.setData(
+                  ClipboardData(text: _encryptedTextController.text),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.black,
+                    content: Text('Copied to clipboard',
+                        style: GoogleFonts.urbanist()),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
     );
@@ -177,63 +240,66 @@ class _SHA256ToolWidgetState extends State<SHA256ToolWidget> {
 
   Widget _labeledTextField(
       String label, String actionLabel, TextEditingController controller,
-      {bool readOnly = false}) {
+      {bool readOnly = false, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.urbanist(
-                  color: const Color(0xFF8899A9),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.urbanist(
+                    color: const Color(0xFF8899A9),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              Text(
-                actionLabel,
-                style: GoogleFonts.urbanist(
-                  color: Colors.black,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                Text(
+                  actionLabel,
+                  style: GoogleFonts.urbanist(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: TextField(
-              controller: controller,
-              readOnly: readOnly,
-              maxLines: 3,
-              decoration: InputDecoration(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                filled: true,
-                fillColor: const Color(0xFFEBF3FA),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide:
-                      const BorderSide(width: 1, color: Color(0x568899A9)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide:
-                      const BorderSide(width: 1, color: Color(0x568899A9)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide:
-                      const BorderSide(width: 1, color: Color(0x568899A9)),
-                ),
-              ),
-              style: GoogleFonts.urbanist(),
+              ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextField(
+                controller: controller,
+                readOnly: readOnly,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                  filled: true,
+                  fillColor: const Color(0xFFEBF3FA),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(width: 1, color: Color(0x568899A9)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(width: 1, color: Color(0x568899A9)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(width: 1, color: Color(0x568899A9)),
+                  ),
+                ),
+                style: GoogleFonts.urbanist(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

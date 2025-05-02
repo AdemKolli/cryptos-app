@@ -4,6 +4,8 @@ import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
 import 'package:cryptos_app/src/views/main/widgets/workspace/endecode_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
@@ -20,6 +22,35 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
   final TextEditingController _keyController = TextEditingController();
   final TextEditingController _encryptedTextController =
       TextEditingController();
+
+  void _showDocumentationDialog() async {
+    final markdownContent = await DefaultAssetBundle.of(context)
+        .loadString('assets/docs/vigenere.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        // title: const Text('Playfair Cipher Documentation'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _processText(bool isEncode) async {
     String text = _plainTextController.text.toUpperCase().replaceAll(" ", "");
@@ -103,19 +134,22 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                GestureDetector(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 )
@@ -137,12 +171,24 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Text(
-                      "Paste from clipboard",
-                      style: GoogleFonts.urbanist(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    InkWell(
+                      onTap: () async {
+                        final clipboardData =
+                            await Clipboard.getData('text/plain');
+                        if (clipboardData != null &&
+                            clipboardData.text != null) {
+                          setState(() {
+                            _plainTextController.text = clipboardData.text!;
+                          });
+                        }
+                      },
+                      child: Text(
+                        "Paste from clipboard",
+                        style: GoogleFonts.urbanist(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     )
                   ],
@@ -260,12 +306,31 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Text(
-                      "Copy to clipboard",
-                      style: GoogleFonts.urbanist(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    InkWell(
+                      onTap: () {
+                        if (_encryptedTextController.text.isNotEmpty) {
+                          Clipboard.setData(
+                            ClipboardData(text: _encryptedTextController.text),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.black,
+                              content: Text(
+                                'Copied to clipboard',
+                                style: GoogleFonts.urbanist()
+                              ),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        "Copy to clipboard",
+                        style: GoogleFonts.urbanist(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     )
                   ],

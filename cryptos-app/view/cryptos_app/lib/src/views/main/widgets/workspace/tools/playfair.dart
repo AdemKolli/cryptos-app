@@ -4,6 +4,8 @@ import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
 import 'package:cryptos_app/src/views/main/widgets/workspace/endecode_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for clipboard functionality
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
@@ -21,6 +23,34 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
   final TextEditingController _keyController = TextEditingController();
   final TextEditingController _encryptedTextController =
       TextEditingController();
+
+  void _showDocumentationDialog() async {
+    final markdownContent = await DefaultAssetBundle.of(context)
+        .loadString('assets/docs/playfair.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _processText(bool isEncode) async {
     String text = _plainTextController.text.toUpperCase().replaceAll(" ", "");
@@ -85,6 +115,24 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
     }
   }
 
+  Future<void> _pasteFromClipboard() async {
+    ClipboardData? clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData != null) {
+      _plainTextController.text = clipboardData.text ?? '';
+    }
+  }
+
+  Future<void> _copyToClipboard() async {
+    if (_encryptedTextController.text.isNotEmpty) {
+      await Clipboard.setData(
+        ClipboardData(text: _encryptedTextController.text),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Copied to clipboard')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -103,22 +151,25 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                GestureDetector(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -137,14 +188,17 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Text(
-                      "Paste from clipboard",
-                      style: GoogleFonts.urbanist(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    GestureDetector(
+                      onTap: _pasteFromClipboard,
+                      child: Text(
+                        "Paste from clipboard",
+                        style: GoogleFonts.urbanist(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 Padding(
@@ -248,14 +302,17 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Text(
-                      "Copy to clipboard",
-                      style: GoogleFonts.urbanist(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    GestureDetector(
+                      onTap: _copyToClipboard,
+                      child: Text(
+                        "Copy to clipboard",
+                        style: GoogleFonts.urbanist(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 Padding(

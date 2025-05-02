@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for Clipboard
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
@@ -15,6 +17,34 @@ class MD5ToolWidget extends StatefulWidget {
 class _MD5ToolWidgetState extends State<MD5ToolWidget> {
   final TextEditingController _plainTextController = TextEditingController();
   final TextEditingController _encryptedTextController = TextEditingController();
+
+  void _showDocumentationDialog() async {
+    final markdownContent = await DefaultAssetBundle.of(context)
+        .loadString('assets/docs/MD5 Hashing doc.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _processText() async {
     String text = _plainTextController.text.trim();
@@ -37,18 +67,30 @@ class _MD5ToolWidgetState extends State<MD5ToolWidget> {
         _encryptedTextController.text = 'Error: ${result.stderr.toString().trim()}';
       } else {
         _encryptedTextController.text = result.stdout.toString().trim();
-         Hive.box<HistoryModel>('history').add(HistoryModel(
+        Hive.box<HistoryModel>('history').add(HistoryModel(
           opType: 0,
-          opName: 
-              "MD5 Hashing Algorithm"
-              ,
-          content: text ,
+          opName: "MD5 Hashing Algorithm",
+          content: text,
           timestamp: DateTime.now().toIso8601String(),
         ));
       }
     } catch (e) {
       _encryptedTextController.text = 'An error occurred: $e';
     }
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    ClipboardData? clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData != null) {
+      _plainTextController.text = clipboardData.text ?? '';
+    }
+  }
+
+  Future<void> _copyToClipboard(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Copied to clipboard')),
+    );
   }
 
   @override
@@ -70,18 +112,21 @@ class _MD5ToolWidgetState extends State<MD5ToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                GestureDetector(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 )
@@ -90,7 +135,8 @@ class _MD5ToolWidgetState extends State<MD5ToolWidget> {
           ),
 
           // Plain Text Input
-          _labeledTextField("Plain Text", "Paste from clipboard", _plainTextController),
+          _labeledTextField("Plain Text", "Paste from clipboard", _plainTextController,
+              onActionTap: _pasteFromClipboard),
 
           // Encode Button
           Padding(
@@ -121,7 +167,8 @@ class _MD5ToolWidgetState extends State<MD5ToolWidget> {
           ),
 
           // Encrypted Text Output
-          _labeledTextField("Hash Output", "Copy to clipboard", _encryptedTextController, readOnly: true),
+          _labeledTextField("Hash Output", "Copy to clipboard", _encryptedTextController,
+              readOnly: true, onActionTap: () => _copyToClipboard(_encryptedTextController.text)),
         ],
       ),
     );
@@ -129,7 +176,7 @@ class _MD5ToolWidgetState extends State<MD5ToolWidget> {
 
   Widget _labeledTextField(
       String label, String actionLabel, TextEditingController controller,
-      {bool readOnly = false}) {
+      {bool readOnly = false, VoidCallback? onActionTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
@@ -145,12 +192,15 @@ class _MD5ToolWidgetState extends State<MD5ToolWidget> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Text(
-                actionLabel,
-                style: GoogleFonts.urbanist(
-                  color: Colors.black,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              GestureDetector(
+                onTap: onActionTap,
+                child: Text(
+                  actionLabel,
+                  style: GoogleFonts.urbanist(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

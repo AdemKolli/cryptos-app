@@ -4,6 +4,9 @@ import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
 import 'package:cryptos_app/src/views/main/widgets/workspace/endecode_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
@@ -21,6 +24,35 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
   final TextEditingController _omitLetterController =
       TextEditingController(text: "W");
   final TextEditingController _resultController = TextEditingController();
+
+  void _showDocumentationDialog() async {
+    final markdownContent = await DefaultAssetBundle.of(context)
+        .loadString('assets/docs/PolybiusSquare.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        // title: const Text('Playfair Cipher Documentation'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _processText(bool isEncode) async {
     final text = _plainTextController.text.trim();
@@ -53,8 +85,7 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
         Hive.box<HistoryModel>('history').add(
           HistoryModel(
             opType: 0,
-            opName:
-                isEncode ? "Polybius – Encode" : "Polybius – Decode",
+            opName: isEncode ? "Polybius – Encode" : "Polybius – Decode",
             content: text,
             timestamp: DateTime.now().toIso8601String(),
           ),
@@ -84,19 +115,22 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                InkWell(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
@@ -119,12 +153,23 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Text(
-                    "Paste from clipboard",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  InkWell(
+                    onTap: () async {
+                      final clipboardData =
+                          await Clipboard.getData('text/plain');
+                      if (clipboardData != null && clipboardData.text != null) {
+                        setState(() {
+                          _plainTextController.text = clipboardData.text!;
+                        });
+                      }
+                    },
+                    child: Text(
+                      "Paste from clipboard",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   )
                 ],
@@ -134,8 +179,8 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
                 controller: _plainTextController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 22, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                   filled: true,
                   fillColor: const Color(0xFFEBF3FA),
                   border: OutlineInputBorder(
@@ -155,8 +200,7 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                EndecodeButton(
-                    isEncode: true, onTap: () => _processText(true)),
+                EndecodeButton(isEncode: true, onTap: () => _processText(true)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -244,12 +288,29 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Text(
-                    "Copy to clipboard",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  InkWell(
+                    onTap: () {
+                      if (_resultController.text.isNotEmpty) {
+                        Clipboard.setData(
+                          ClipboardData(text: _resultController.text),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.black,
+                            content: Text('Copied to clipboard',
+                                style: GoogleFonts.urbanist()),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text(
+                      "Copy to clipboard",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   )
                 ],
@@ -260,8 +321,8 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
                 maxLines: 3,
                 readOnly: true,
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 22, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                   filled: true,
                   fillColor: const Color(0xFFEBF3FA),
                   border: OutlineInputBorder(

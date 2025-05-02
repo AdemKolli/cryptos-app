@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:cryptos_app/src/models/history_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 
@@ -15,10 +18,40 @@ class RSAToolWidget extends StatefulWidget {
 class _RSAToolWidgetState extends State<RSAToolWidget> {
   final TextEditingController _plainTextController = TextEditingController();
   final TextEditingController _keyController = TextEditingController();
-  final TextEditingController _encryptedTextController = TextEditingController();
+  final TextEditingController _encryptedTextController =
+      TextEditingController();
 
   String? _privateKey;
   bool _canDecrypt = false;
+
+  void _showDocumentationDialog() async {
+    final markdownContent =
+        await DefaultAssetBundle.of(context).loadString('assets/docs/RSA.md');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        // title: const Text('Playfair Cipher Documentation'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: SingleChildScrollView(
+            child: MarkdownBody(
+              data: markdownContent,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _processText(bool isEncode) async {
     String text = _plainTextController.text.replaceAll(" ", "");
@@ -65,9 +98,13 @@ class _RSAToolWidgetState extends State<RSAToolWidget> {
           }
 
           _keyController.text = outputLines
-              .where((line) => line.startsWith("PUBLIC_KEY=") || line.startsWith("PRIVATE_KEY="))
-              .map((line) => line.replaceAll("PUBLIC_KEY=", "Public: ").replaceAll("PRIVATE_KEY=", "Private: "))
-              .join("\n");
+              .where((line) =>
+                  line.startsWith("PUBLIC_KEY=") ||
+                  line.startsWith("PRIVATE_KEY="))
+              .map((line) => line
+                  .replaceAll("PUBLIC_KEY=", "Public: ")
+                  .replaceAll("PRIVATE_KEY=", "Private: "))
+              .join("|| ");
           // print(_keyController.text);
           Hive.box<HistoryModel>('history').add(HistoryModel(
               opType: 0,
@@ -117,18 +154,22 @@ class _RSAToolWidgetState extends State<RSAToolWidget> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    "Check Documentation",
-                    style: GoogleFonts.urbanist(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                GestureDetector(
+                  onTap: _showDocumentationDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "Check Documentation",
+                      style: GoogleFonts.urbanist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 )
@@ -145,7 +186,19 @@ class _RSAToolWidgetState extends State<RSAToolWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("Plain Text", style: _labelStyle()),
-                    Text("Paste from clipboard", style: _activeStyle()),
+                    InkWell(
+                        onTap: () async {
+                          final clipboardData =
+                              await Clipboard.getData('text/plain');
+                          if (clipboardData != null &&
+                              clipboardData.text != null) {
+                            setState(() {
+                              _plainTextController.text = clipboardData.text!;
+                            });
+                          }
+                        },
+                        child: Text("Paste from clipboard",
+                            style: _activeStyle())),
                   ],
                 ),
                 Padding(
@@ -185,7 +238,8 @@ class _RSAToolWidgetState extends State<RSAToolWidget> {
                     ),
                   ],
                 ),
-                _actionButton(false, _canDecrypt ? () => _processText(false) : null),
+                _actionButton(
+                    false, _canDecrypt ? () => _processText(false) : null),
               ],
             ),
           ),
@@ -199,7 +253,25 @@ class _RSAToolWidgetState extends State<RSAToolWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("Encrypted Text", style: _labelStyle()),
-                    Text("Copy to clipboard", style: _activeStyle()),
+                    InkWell(
+                        onTap: () {
+                          if (_encryptedTextController.text.isNotEmpty) {
+                            Clipboard.setData(
+                              ClipboardData(
+                                  text: _encryptedTextController.text),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.black,
+                                content: Text('Copied to clipboard',
+                                    style: GoogleFonts.urbanist()),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        },
+                        child:
+                            Text("Copy to clipboard", style: _activeStyle())),
                   ],
                 ),
                 Padding(
@@ -234,7 +306,8 @@ class _RSAToolWidgetState extends State<RSAToolWidget> {
       );
 
   InputDecoration _fieldDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         filled: true,
         fillColor: const Color(0xFFEDF5FC),
         border: OutlineInputBorder(
