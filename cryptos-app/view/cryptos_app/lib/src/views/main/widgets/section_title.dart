@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class SectionTitle extends StatelessWidget {
   const SectionTitle({super.key});
@@ -41,12 +42,12 @@ class SectionTitle extends StatelessWidget {
           Opacity(
             opacity: 0.23,
             child: Text(
-              'Today’s date - Thu 14th April 2025',
+              'Today’s date - ${DateFormat('EEE d\'th\' MMMM yyyy').format(DateTime.now())}',
               textAlign: TextAlign.right,
               style: GoogleFonts.urbanist(
-                color: Colors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               ),
             ),
           )

@@ -8,26 +8,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:process_run/process_run.dart';
 
-class PlayfairCipherToolWidget extends StatefulWidget {
-  const PlayfairCipherToolWidget({super.key});
+class AES256ToolWidget extends StatefulWidget {
+  const AES256ToolWidget({super.key});
 
   @override
-  State<PlayfairCipherToolWidget> createState() =>
-      _PlayfairCipherToolWidgetState();
+  State<AES256ToolWidget> createState() => _AES256ToolWidgetState();
 }
 
-class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
+class _AES256ToolWidgetState extends State<AES256ToolWidget> {
   final TextEditingController _plainTextController = TextEditingController();
   final TextEditingController _keyController = TextEditingController();
   final TextEditingController _encryptedTextController =
       TextEditingController();
 
   Future<void> _processText(bool isEncode) async {
-    String text = _plainTextController.text.toUpperCase().replaceAll(" ", "");
-    String key = _keyController.text.toUpperCase().replaceAll(" ", "");
+    String text = _plainTextController.text.replaceAll(" ", "");
+    String key = _keyController.text.replaceAll(" ", "");
     String encrypt =
-        _encryptedTextController.text.toUpperCase().replaceAll(" ", "");
-
+        _encryptedTextController.text.replaceAll(" ", "");
     if (isEncode) {
       if (text.isEmpty || key.isEmpty) {
         _encryptedTextController.text = 'Both fields must be filled.';
@@ -37,6 +35,11 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
       if (encrypt.isEmpty || key.isEmpty) {
         _plainTextController.text = 'Both fields must be filled.';
         return;
+      } else if (key.length < 16) {
+        _plainTextController.text.contains("other");
+        _encryptedTextController.text = _encryptedTextController.text.substring(91);
+        encrypt = _encryptedTextController.text;
+        // print("@${_encryptedTextController.text}@");
       }
     }
 
@@ -44,44 +47,46 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
       final result = await Process.run(
         'python',
         [
-          'lib/scripts/playfair.py',
+          'lib/scripts/aes256.py',
           isEncode ? 'encode' : 'decode',
           isEncode ? text : encrypt,
           key
         ],
       );
 
-      if (result.exitCode != 0) {
-        final errorText = 'Error: ${result.stderr.toString().trim()}';
-        if (isEncode) {
-          _encryptedTextController.text = errorText;
+      if (isEncode) {
+        // print("Encode - ${text} with ${key}");
+        if (result.exitCode != 0) {
+          _encryptedTextController.text =
+              'Error: ${result.stderr.toString().trim()}';
         } else {
-          _plainTextController.text = errorText;
+          _encryptedTextController.text = result.stdout.toString().trim();
+          Hive.box<HistoryModel>('history').add(HistoryModel(
+              opType: 0,
+              opName: isEncode
+                  ? "AES 256 bit Key - Encryption"
+                  : "AES 256 bit Key - Decryption",
+              content: isEncode ? text : encrypt,
+                timestamp: DateTime.now().toIso8601String()));
         }
       } else {
-        final output = result.stdout.toString().trim();
-        if (isEncode) {
-          _encryptedTextController.text = output;
+        // print("Decode - ${encrypt} with ${key}");
+        if (result.exitCode != 0) {
+          _plainTextController.text =
+              'Error: ${result.stderr.toString().trim()}';
         } else {
-          _plainTextController.text = output;
+          _plainTextController.text = result.stdout.toString().trim();
+          Hive.box<HistoryModel>('history').add(HistoryModel(
+              opType: 0,
+              opName: isEncode
+                  ? "AES 128 bit Key - Encryption"
+                  : "AES 128 bit Key - Decryption",
+              content: isEncode ? text : encrypt,
+              timestamp: DateTime.now().toIso8601String()));
         }
-
-        Hive.box<HistoryModel>('history').add(HistoryModel(
-          opType: 0,
-          opName: isEncode
-              ? "Playfair Cipher - Encryption"
-              : "Playfair Cipher - Decryption",
-          content: isEncode ? text : encrypt,
-          timestamp: DateTime.now().toIso8601String(),
-        ));
       }
     } catch (e) {
-      final errorText = 'An error occurred: $e';
-      if (isEncode) {
-        _encryptedTextController.text = errorText;
-      } else {
-        _plainTextController.text = errorText;
-      }
+      _encryptedTextController.text = 'An error occurred: $e';
     }
   }
 
@@ -96,7 +101,7 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Playfair Encoder | Decoder",
+                  "AES 256 bit Key Encoder | Decoder",
                   style: GoogleFonts.urbanist(
                     color: Colors.black,
                     fontSize: 24,
@@ -160,17 +165,23 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                            width: 1, color: Color(0x568899A9)),
+                          width: 1,
+                          color: Color(0x568899A9),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                            width: 1, color: Color(0x568899A9)),
+                          width: 1,
+                          color: Color(0x568899A9),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                            width: 1, color: Color(0x568899A9)),
+                          width: 1,
+                          color: Color(0x568899A9),
+                        ),
                       ),
                     ),
                     style: GoogleFonts.urbanist(),
@@ -210,17 +221,23 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: const BorderSide(
-                                width: 1, color: Color(0x568899A9)),
+                              width: 1,
+                              color: Color(0x568899A9),
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: const BorderSide(
-                                width: 1, color: Color(0x568899A9)),
+                              width: 1,
+                              color: Color(0x568899A9),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: const BorderSide(
-                                width: 1, color: Color(0x568899A9)),
+                              width: 1,
+                              color: Color(0x568899A9),
+                            ),
                           ),
                         ),
                         style: GoogleFonts.urbanist(),
@@ -271,17 +288,23 @@ class _PlayfairCipherToolWidgetState extends State<PlayfairCipherToolWidget> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                            width: 1, color: Color(0x568899A9)),
+                          width: 1,
+                          color: Color(0x568899A9),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                            width: 1, color: Color(0x568899A9)),
+                          width: 1,
+                          color: Color(0x568899A9),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
-                            width: 1, color: Color(0x568899A9)),
+                          width: 1,
+                          color: Color(0x568899A9),
+                        ),
                       ),
                     ),
                     style: GoogleFonts.urbanist(),

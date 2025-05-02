@@ -26,6 +26,29 @@ class TabContent extends StatelessWidget {
               switch (workspaceController.selectedTool) {
                 case 'Vigenère Cipher':
                   return workspaceController.toolContent[0];
+                case 'AES Algorithm - 128 bit key (Advanced Encryption Standard)':
+                  return workspaceController.toolContent[1];
+                case 'AES Algorithm - 192 bit key (Advanced Encryption Standard)':
+                  return workspaceController.toolContent[2];
+                case 'AES Algorithm - 256 bit key (Advanced Encryption Standard)':
+                  return workspaceController.toolContent[3];
+                case 'RSA Algorithm (Rivest–Shamir–Adleman)':
+                  return workspaceController.toolContent[4];
+                case 'SHA-256 Hash Algorithm':
+                  return workspaceController.toolContent[5];
+                case 'Complex Columnar Transposition':
+                  return workspaceController.toolContent[6];
+                case 'Playfair Cipher':
+                  return workspaceController.toolContent[7];
+                case 'DES Algorithm (Data Encryption Standard)':
+                  return workspaceController.toolContent[8];
+                case 'Polybius Square Transposition':
+                  return workspaceController.toolContent[9];
+                case 'MD5 Hash Algorithm':
+                  return workspaceController.toolContent[10];
+                case 'Diffie–Hellman Algorithm (Key Exchange)':
+                  return workspaceController.toolContent[11];
+                
                 // Add cases for other tools as needed
                 default:
                   return Center(

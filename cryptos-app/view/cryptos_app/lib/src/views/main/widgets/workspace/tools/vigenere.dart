@@ -42,7 +42,7 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
       final result = await Process.run(
         'python',
         [
-          'lib/scripts/columnar.py',
+          'lib/scripts/vigenere.py',
           isEncode ? 'encode' : 'decode',
           isEncode ? text : encrypt,
           key
@@ -62,7 +62,7 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
                   ? "Vigenère Cipher - Encryption"
                   : "Vigenère Cipher - Decryption",
               content: isEncode ? text : encrypt,
-              timestamp: "timestamp"));
+                timestamp: DateTime.now().toIso8601String()));
         }
       } else {
         // print("Decode - ${encrypt} with ${key}");
@@ -77,7 +77,7 @@ class _VigenereToolWidgetState extends State<VigenereToolWidget> {
                   ? "Vigenère Cipher - Encryption"
                   : "Vigenère Cipher - Decryption",
               content: isEncode ? text : encrypt,
-              timestamp: "timestamp"));
+              timestamp: DateTime.now().toIso8601String()));
         }
       }
     } catch (e) {
