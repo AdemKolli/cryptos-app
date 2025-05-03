@@ -57,11 +57,19 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
   Future<void> _processText(bool isEncode) async {
     final text = _plainTextController.text.trim();
     final key = _keyController.text.trim();
+    final encrypt = _resultController.text.trim();
     final omit = _omitLetterController.text.trim().toUpperCase();
 
-    if (text.isEmpty) {
-      _resultController.text = 'Both fields must be filled.';
-      return;
+    if (isEncode) {
+      if (text.isEmpty) {
+        _resultController.text = 'Plain text field must be filled.';
+        return;
+      }
+    } else {
+      if (encrypt.isEmpty) {
+        _plainTextController.text = 'Encrypted text field must be filled.';
+        return;
+      }
     }
 
     try {
@@ -70,22 +78,30 @@ class _PolybiusToolWidgetState extends State<PolybiusToolWidget> {
         [
           'lib/scripts/polybius.py',
           isEncode ? 'encode' : 'decode',
-          text,
+          isEncode ? text : encrypt,
           key,
           omit,
         ],
       );
 
       if (result.exitCode != 0) {
-        _resultController.text = 'Error: ${result.stderr}'.trim();
+        final errorText = 'Error: ${result.stderr.toString().trim()}';
+        if (isEncode) {
+          _resultController.text = errorText;
+        } else {
+          _plainTextController.text = errorText;
+        }
       } else {
         final output = result.stdout.toString().trim();
-        _resultController.text = output;
-
+        if (isEncode) {
+          _resultController.text = output;
+        } else {
+          _plainTextController.text = output;
+        }
         Hive.box<HistoryModel>('history').add(
           HistoryModel(
             opType: 0,
-            opName: isEncode ? "Polybius – Encode" : "Polybius – Decode",
+            opName: isEncode ? "Polybius Square – Encode" : "Polybius Square – Decode",
             content: text,
             timestamp: DateTime.now().toIso8601String(),
           ),

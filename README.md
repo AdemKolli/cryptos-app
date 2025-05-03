@@ -20,7 +20,7 @@
 2. **Asymmetric Key Algorithms**  
    - RSA (Key generation, encryption/decryption)  
 3. **Hashing**
-   - SHA-256  
+   - SHA-256, MD5  
 4. **Diffie-Hellman Algorithm**  
 
 ### Core Functionalities  
@@ -39,7 +39,7 @@
 
 ### Dependencies  
 - **Python**:   
-  - `argparse` (for command-line argument parsing).  
+  - `sys` (for command-line argument parsing).  
 - **Flutter**:  
   - `process_run` package for process management.  
 
@@ -47,54 +47,54 @@
 
 ## 4. Python Backend Structure  
 ### File Organization  
-- `crypto_scripts/`  
+- `scripts/`  
   - `vigenere.py`  
   - `playfair.py`  
   - `aes.py`  
   - `rsa.py`  
-  - `hashing.py`  
+  - `hashing.py`
+  - ...  
 
 ### Function Requirements  
 All Python scripts **MUST** adhere to the following input/output conventions:  
 
 #### **Input Format**  
-- Accept arguments via command line using `argparse`.  
+- Accept arguments via command line using `sys`.  
 - Required arguments:  
-  - `--operation` (`encrypt`, `decrypt`, or `hash`).  
-  - `--input` (plaintext/ciphertext).  
-  - `--key` (if applicable, e.g., AES key or Vigenère keyword).  
+  - `encode`, `decode`, or `hash`.  
+  - plaintext/ciphertext.  
+  - if applicable, e.g., AES key or Vigenère keyword.  
 
 #### **Output Format**  
-- Return results as a **JSON string** to stdout.  
-- Example:  
-  ```json
-  { "status": "success", "result": "<encrypted_text>" }  
+- Return results as a **Plain text string** to stdout.  
+- Example for encryption with a `<key>`:  
+  ```
+  <encrypted_text>  
 
 ### Example Python code: 
-```python
-from Crypto.Cipher import AES  
-import argparse  
-import json  
-import base64  
+```python  
+import sys  
 
 def aes_encrypt(plaintext, key):  
     # Implementation logic here  
     return ciphertext  
 
-if __name__ == "__main__":  
-    parser = argparse.ArgumentParser()  
-    parser.add_argument("--operation", type=str, required=True)  
-    parser.add_argument("--input", type=str, required=True)  
-    parser.add_argument("--key", type=str, required=True)  
-    args = parser.parse_args()  
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Usage: python aes128.py [encode|decode] [text] [key]", file=sys.stderr)
+        sys.exit(1)
 
-    try:  
-        if args.operation == "encrypt":  
-            result = aes_encrypt(args.input, args.key)  
-            print(json.dumps({"status": "success", "result": result}))  
-        # Add decrypt logic  
-    except Exception as e:  
-        print(json.dumps({"status": "error", "message": str(e)}))  
+    operation = sys.argv[1].lower()
+    text = sys.argv[2]
+    key = sys.argv[3]
+
+    if operation == "encode":
+        print(aes_encrypt_string(text, key))
+    elif operation == "decode":
+        print(aes_decrypt_string(text, key))
+    else:
+        print("Invalid operation. Use 'encode' or 'decode'.", file=sys.stderr)
+        sys.exit(1)  
 ```
 
 ## 7. Conclusion

@@ -1,6 +1,5 @@
 import 'package:cryptos_app/src/controllers/workspace_controller.dart';
 import 'package:cryptos_app/src/utils/screen_info.dart';
-import 'package:cryptos_app/src/views/main/widgets/workspace/endecode_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +48,6 @@ class TabContent extends StatelessWidget {
                 case 'Diffie–Hellman Algorithm (Key Exchange)':
                   return workspaceController.toolContent[11];
                 
-                // Add cases for other tools as needed
                 default:
                   return Center(
                     child: Text(
